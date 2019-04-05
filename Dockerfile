@@ -50,6 +50,7 @@ EXPOSE 22 1217
 
 #do entrypoint
 COPY "entrypoint.sh" /
+RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 #set STOPSGINAL
