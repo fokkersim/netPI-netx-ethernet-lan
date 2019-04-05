@@ -29,7 +29,8 @@ ENV USER=pi
 ENV PASSWD=raspberry
 
 #install ssh, create user "pi" and make him sudo
-RUN apt-get update  \
+RUN chmod +x /entrypoint.sh \
+	&& apt-get update  \
     && apt-get install -y openssh-server net-tools psmisc \
     && mkdir /var/run/sshd \
     && useradd --create-home --shell /bin/bash pi \
