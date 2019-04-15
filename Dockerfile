@@ -28,7 +28,8 @@ LABEL maintainer="netpi@hilscher.com" \
 COPY "./driver/*" "./firmware/*" /tmp/	  
 COPY "entrypoint.sh" /
 #fix windows permissions issue
-RUN chmod +x /entrypoint.sh
+#RUN chmod +x /entrypoint.sh
+RUN ["chmod", "+x", "/entrypoint.sh"]
 	  
 #environment variables
 ENV USER=pi
