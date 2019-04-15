@@ -36,7 +36,7 @@ ENV PASSWD=raspberry
 
 #install ssh, create user "pi" and make him sudo
 RUN apt-get update  \
-    && apt-get install -y openssh-server net-tools psmisc build-essential network-manager ifupdown isc-dhcp-client \
+    && apt-get install -y openssh-server net-tools psmisc build-essential network-manager ifupdown isc-dhcp-client dos2unix \
     && mkdir /var/run/sshd \
     && useradd --create-home --shell /bin/bash pi \
     && echo $USER:$PASSWD | chpasswd \
@@ -65,6 +65,7 @@ RUN apt-get update  \
 EXPOSE 22 1217
 
 #do entrypoint
+RUN dos2unix /entrypoint.sh && apt-get --purge remove -y dos2unix && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/entrypoint.sh"]
 
 #set STOPSGINAL
