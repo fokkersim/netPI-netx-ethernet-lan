@@ -28,8 +28,7 @@ LABEL maintainer="netpi@hilscher.com" \
 COPY "./driver/*" "./firmware/*" /tmp/	  
 COPY "entrypoint.sh" /
 #fix windows permissions issue
-RUN chmod +x /entrypoint.sh
-RUN chmod 777 /entrypoint.sh
+RUN "chmod +x /entrypoint.sh"
 	  
 #environment variables
 ENV USER=pi
@@ -66,8 +65,8 @@ RUN apt-get update  \
 EXPOSE 22 1217
 
 #do entrypoint
-RUN dos2unix /entrypoint.sh && apt-get --purge remove -y dos2unix && rm -rf /var/lib/apt/lists/*
-#ENTRYPOINT ["/entrypoint.sh"]
+#RUN dos2unix /entrypoint.sh && apt-get --purge remove -y dos2unix && rm -rf /var/lib/apt/lists/*
+ENTRYPOINT ["/entrypoint.sh"]
 
 #set STOPSGINAL
 STOPSIGNAL SIGTERM
