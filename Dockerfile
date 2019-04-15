@@ -67,7 +67,7 @@ EXPOSE 22 1217
 
 #do entrypoint
 RUN dos2unix /entrypoint.sh && apt-get --purge remove -y dos2unix && rm -rf /var/lib/apt/lists/*
-ENTRYPOINT ["/entrypoint.sh"]
+#ENTRYPOINT ["/entrypoint.sh"]
 
 #set STOPSGINAL
 STOPSIGNAL SIGTERM
