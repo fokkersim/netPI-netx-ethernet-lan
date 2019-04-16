@@ -22,15 +22,21 @@ USER root
 #labeling
 LABEL maintainer="netpi@hilscher.com" \
       version=$HILSCHERNETPI_CODESYS_BASIS_VERSION \
-      description="CODESYS Control"
+      description="CODESYS Control with netX based TCP/IP network interface"
 
+#copy files
+COPY "./driver/*" "./firmware/*" /tmp/	  
+COPY "entrypoint.sh" /
+#fix windows permissions issue
+RUN chmod +x /entrypoint.sh
+	  
 #environment variables
 ENV USER=pi
 ENV PASSWD=raspberry
 
 #install ssh, create user "pi" and make him sudo
 RUN apt-get update  \
-    && apt-get install -y openssh-server net-tools psmisc \
+    && apt-get install -y openssh-server net-tools psmisc build-essential network-manager ifupdown isc-dhcp-client dos2unix \
     && mkdir /var/run/sshd \
     && useradd --create-home --shell /bin/bash pi \
     && echo $USER:$PASSWD | chpasswd \
@@ -41,6 +47,16 @@ RUN apt-get update  \
     && mkdir /etc/modprobe.d \
     && touch /etc/modprobe.d/blacklist.conf \
     && touch /etc/modules \
+#install netX driver and netX ethernet supporting firmware
+    && dpkg -i /tmp/netx-docker-pi-drv-1.1.3-r1.deb \
+    && dpkg -i /tmp/netx-docker-pi-pns-eth-3.12.0.8.deb \
+#compile netX network daemon
+    && gcc /tmp/cifx0daemon.c -o /opt/cifx/cifx0daemon -I/usr/include/cifx -Iincludes/ -lcifx -pthread \
+#enable automatic interface management
+    && sudo sed -i 's/^managed=false/managed=true/' /etc/NetworkManager/NetworkManager.conf \
+#clean up
+	&& rm -rf /tmp/* \
+    && apt-get remove build-essential \
     && apt-get -yqq autoremove \
     && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/*
@@ -49,7 +65,7 @@ RUN apt-get update  \
 EXPOSE 22 1217
 
 #do entrypoint
-COPY "entrypoint.sh" /
+#RUN dos2unix /entrypoint.sh && apt-get --purge remove -y dos2unix && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/entrypoint.sh"]
 
 #set STOPSGINAL
