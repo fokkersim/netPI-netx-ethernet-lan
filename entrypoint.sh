@@ -1,5 +1,5 @@
 #!/bin/bash +e
-# catch signals as PID 1 in a container
+# catch signals as PID 1 in a containerr
 
 # SIGNAL-handler
 term_handler() {
