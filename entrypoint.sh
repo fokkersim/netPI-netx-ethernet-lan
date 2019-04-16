@@ -1,5 +1,5 @@
 #!/bin/bash +e
-# catch signals as PID 1 in a containerr
+# catch signals as PID 1 in a container
 
 # SIGNAL-handler
 term_handler() {
@@ -23,16 +23,6 @@ trap 'kill ${!}; term_handler' SIGINT SIGKILL SIGTERM SIGQUIT SIGTSTP SIGSTOP SI
 if ! ( grep -q "127.0.0.1 localhost localhost.localdomain ${HOSTNAME}" /etc/hosts > /dev/null);
 then
   echo "127.0.0.1 localhost localhost.localdomain ${HOSTNAME}" >> /etc/hosts
-fi
-
-# run applications in the background
-echo "starting ssh ..."
-/etc/init.d/ssh start &
-
-if [ -f /etc/init.d/codesyscontrol ]
-then
-echo "starting CODESYS ..."
-/etc/init.d/codesyscontrol start &
 fi
 
 # create the corresponding Ethernet configuration file 
@@ -71,6 +61,16 @@ fi
 #stop/start the networking
 /etc/init.d/networking stop
 /etc/init.d/networking start
+
+# run applications in the background
+echo "starting ssh ..."
+/etc/init.d/ssh start &
+
+if [ -f /etc/init.d/codesyscontrol ]
+then
+echo "starting CODESYS ..."
+/etc/init.d/codesyscontrol start &
+fi
 
 # wait forever not to exit the container
 while true

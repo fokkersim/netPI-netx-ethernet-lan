@@ -7,21 +7,21 @@ ARG VCS_REF
 
 #metadata labels
 LABEL org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.vcs-url="https://github.com/HilscherAutomation/netPI-codesys-basis" \
+      org.label-schema.vcs-url="https://github.com/fokkersim/netPI-netx-ethernet-lan" \
       org.label-schema.vcs-ref=$VCS_REF
 
 #enable building ARM container on x86 machinery on the web (comment out next line if built on Raspberry)
 RUN [ "cross-build-start" ]
 
 #version
-ENV HILSCHERNETPI_CODESYS_BASIS_VERSION 1.0.1
+ENV FOKKERSIMNETPI_CODESYS_NETX_NODERED_VERSION 1.0.0
 
 #execute all commands as root
 USER root
 
 #labeling
-LABEL maintainer="netpi@hilscher.com" \
-      version=$HILSCHERNETPI_CODESYS_BASIS_VERSION \
+LABEL maintainer="andreas.harrer@fokkersim.net" \
+      version=$FOKKERSIMNETPI_CODESYS_NETX_NODERED_VERSION \
       description="CODESYS Control with netX based TCP/IP network interface"
 
 #copy files
@@ -65,7 +65,6 @@ RUN apt-get update  \
 EXPOSE 22 1217
 
 #do entrypoint
-#RUN dos2unix /entrypoint.sh && apt-get --purge remove -y dos2unix && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/entrypoint.sh"]
 
 #set STOPSGINAL
