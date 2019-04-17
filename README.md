@@ -1,13 +1,10 @@
 ## CODESYS Control
 
-[![](https://images.microbadger.com/badges/image/hilschernetpi/netpi-codesys-basis.svg)](https://microbadger.com/images/hilschernetpi/netpi-codesys-basis "CODESYS Control")
-[![](https://images.microbadger.com/badges/commit/hilschernetpi/netpi-codesys-basis.svg)](https://microbadger.com/images/hilschernetpi/netpi-codesys-basis "CODESYS Control")
-[![Docker Registry](https://img.shields.io/docker/pulls/hilschernetpi/netpi-codesys-basis.svg)](https://registry.hub.docker.com/u/hilschernetpi/netpi-codesys-basis/)&nbsp;
-[![Image last updated](https://img.shields.io/badge/dynamic/json.svg?url=https://api.microbadger.com/v1/images/hilschernetpi/netpi-codesys-basis&label=Image%20last%20updated&query=$.LastUpdated&colorB=007ec6)](http://microbadger.com/images/hilschernetpi/netpi-codesys-basis "Image last updated")&nbsp;
+This container is based on hilschernetpi/netpi-codesys-basis and hilschernetpi/netpi-netx-ethernet-lan and combines both to make the netx interface available in the CODESYS environment. This image can be used to run an EtherCAT master on the eth0 port and connect to CODESYS via the cifx0 (RTE) ports. Thereby the higher speed capable eth0 is used for the EtherCAT master and the slower cifx0 (RTE) port is used for programming and control of the CODESYS soft PLC via the Windows IDE. 
 
 Made for [netPI](https://www.netiot.com/netpi/), the Raspberry Pi 3B Architecture based industrial suited Open Edge Connectivity Ecosystem
 
-### Debian with SSH server, user pi and basic settings to run CODESYS Control for Raspberry Pi SL or Pi MC SL
+### Debian with SSH server, user pi and basic settings to run CODESYS Control for Raspberry Pi SL or Pi MC SL including activation of netx RTE interface
 
 The image provided hereunder deploys a container with a basic setup of Linux tools, utilities and user needed for a flawless installation of the CODESYS Control for Raspberry Pi (SL and MC SL) packages across the Windows® based [CODESYS Development System V3](https://store.codesys.com/codesys.html?___store=en&___from_store=en).
 
@@ -19,7 +16,7 @@ By default the runtime is time limited to run 1 hour until it stops. It needs an
 
 #### Container prerequisites
 
-##### Bridge network (Alternative A)
+##### Bridge network (Alternative A) not recommended
 
 Use bridge network mode in case the container shall run isolated and requires no further control of the host network interface `eth0` (or other) required for Modbus TCP, PROFINET or similar communications.
 
@@ -31,11 +28,20 @@ To allow the CODESYS Development System communicating with the deployed CODESYS 
 
 The CODESYS runtime starts an OPC UA server. To access the OPC UA server from an OPC UA client the container TCP port `4880` needs to be exposed to the host.
 
-##### Host network (Alternative B)
+##### Host network (Alternative B) recommended for EtherCAT Master on eth0
 
 Use host network mode in case the container requires control of the host network interface `eth0` (or other) required for Modbus TCP, PROFINET or similar communications.
-
 Using this mode makes port mapping unnecessary since all the container's used ports are exposed to the host automatically.
+To grant access to the netX from inside the container the `/dev/spidev0.0` host device needs to be exposed to the container.
+To allow the container creating an additional network device for the netX network controller the `/dev/net/tun` host device needs to be expose to the container.
+
+##### Environment Variables
+
+The assignment of the Ethernet network interface's IP address is configured through the following variables
+
+* **IP_ADDRESS** with a value in the format `x.x.x.x` e.g. 192.168.0.1 configures the interface's IP address. A value `dhcp` instead enables the dhcp mode and the interface waits to receive its IP address through a DCHP server.
+* **SUBNET_MASK** with a value in the format `x.x.x.x` e.g. 255.255.255.0 configures the interface's subnet mask. It is not necessary to configure in dhcp mode.
+* **GATEWAY** with a value in the format `x.x.x.x` e.g. 192.168.0.10 configures the interface's gateway address. It is not necessary to configure in dhcp mode.
 
 ##### Privileged mode
 
@@ -57,13 +63,18 @@ STEP 3. Enter the following parameters under *Containers > + Add Container*
 
 Parameter | Value | Remark
 :---------|:------ |:------
-*Image* | **hilschernetpi/netpi-codesys-basis**
-*Network > Network* | **bridge** or **host** | use alternatively
+*Image* | **fokkersim/netpi-codesys-netx-nodered**
+*Network > Network* | **bridge** or **host** | use alternatively (host mode for EtherCAT master on eth0)
 *Port mapping* | *host* **22** -> *container* **22** | in bridge mode
 *Port mapping* | *host* **1217** -> *container* **1217** | in bridge mode
 *Port mapping* | *host* **4840** -> *container* **4840** | in bridge mode
 *Restart policy* | **always**
 *Runtime > Devices > +add device* | *Host path* **/dev/vcio** -> *Container path* **/dev/vcio** |
+*Runtime > Devices > +add device* | *Host path* **/dev/spidev0.0** -> *Container path* **/dev/spidev0.0** |
+*Runtime > Devices > +add device* | *Host path* **/dev/net/tun** -> *Container path* **/dev/net/tun** |
+*Runtime > Env* | *name* **IP_ADDRESS** -> *value* **e.g.192.168.0.1** | value `dhcp` enables dhcp mode
+*Runtime > Env* | *name* **SUBNET_MASK** -> *value* **e.g.255.255.255.0** | not needed in `dhcp` mode
+*Runtime > Env* | *name* **GATEWAY** -> *value* **e.g.192.168.0.10** | not needed in `dhcp` mode
 *Runtime > Privileged mode* | **On** |
 
 STEP 4. Press the button *Actions > Start/Deploy container*
@@ -72,7 +83,7 @@ Pulling the image may take a while (5-10mins). Sometimes it may take too long an
 
 #### Accessing
 
-A started container is immediately ready to receive the initial load of the "CODESYS Control Runtime for Raspberry" in the versions "Pi SL" or "Pi MC SL" packages.
+A started container is immediately ready to receive the initial load of the "CODESYS Control Runtime for Raspberry" in the versions "Pi SL" or "Pi MC SL" packages. This is done via the IP specified in the IP_ADDRESS environment variable and a connection to the RTE Ethernet ports of the NetPI RTE.
 
 STEP 1: Upgrade your CODESYS development system with support for Raspberry compatible platforms by using the function `Tools -> Package Manager -> Install` and choose the package `CODESYS Control for Raspberry Pi 3.5.xx.xx.package` you downloaded before.
 

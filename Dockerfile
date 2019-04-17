@@ -36,7 +36,7 @@ ENV PASSWD=raspberry
 
 #install ssh, create user "pi" and make him sudo
 RUN apt-get update  \
-    && apt-get install -y openssh-server net-tools psmisc build-essential network-manager ifupdown isc-dhcp-client dos2unix \
+    && apt-get install -y openssh-server net-tools psmisc build-essential network-manager ifupdown isc-dhcp-client \
     && mkdir /var/run/sshd \
     && useradd --create-home --shell /bin/bash pi \
     && echo $USER:$PASSWD | chpasswd \
