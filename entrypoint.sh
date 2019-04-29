@@ -19,52 +19,55 @@ term_handler() {
 # on callback, stop all started processes in term_handler
 trap 'kill ${!}; term_handler' SIGINT SIGKILL SIGTERM SIGQUIT SIGTSTP SIGSTOP SIGHUP
 
-#resolve HOST just in case
-if ! ( grep -q "127.0.0.1 localhost localhost.localdomain ${HOSTNAME}" /etc/hosts > /dev/null);
-then
-  echo "127.0.0.1 localhost localhost.localdomain ${HOSTNAME}" >> /etc/hosts
-fi
-
-# create the corresponding Ethernet configuration file 
-if [ ! -f /etc/network/interfaces.d/cifx0 ]
-   then
-
-   touch /etc/network/interfaces.d/cifx0
-   echo "auto cifx0" >> /etc/network/interfaces.d/cifx0
-
-   if [ -z "$IP_ADDRESS" ]
-   then 
-      echo "iface cifx0 inet static" >> /etc/network/interfaces.d/cifx0
-      echo "address 192.168.253.1" >>/etc/network/interfaces.d/cifx0 
-      echo "network 255.255.255.0" >>/etc/network/interfaces.d/cifx0 
-   else 
-
-      if [ "$IP_ADDRESS" == "dhcp" ]
-      then
-        echo "allow-hotplug cifx0" >> /etc/network/interfaces.d/cifx0
-        echo "iface cifx0 inet dhcp" >>/etc/network/interfaces.d/cifx0 
-      else
-        echo "iface cifx0 inet static" >> /etc/network/interfaces.d/cifx0
-        echo "address" $IP_ADDRESS >>/etc/network/interfaces.d/cifx0 
-        echo "network" $SUBNET_MASK >>/etc/network/interfaces.d/cifx0 
-        echo "gateway" $GATEWAY >>/etc/network/interfaces.d/cifx0 
-      fi
-   fi
-fi
+# run applications in the background
+echo "starting ssh ..."
+/etc/init.d/ssh start
 
 # create netx "cifx0" ethernet network interface 
 /opt/cifx/cifx0daemon
 
-#start the network-manager
-/etc/init.d/network-manager start
+# ip address configured as environment variable?
+if [ -z "$IP_ADDRESS" ]
+then
+  # set alternative
+  IP_ADDRESS="192.168.253.1"
+fi
 
-#stop/start the networking
-/etc/init.d/networking stop
-/etc/init.d/networking start
+# subnet mask configured as environment variable?
+if [ -z "$SUBNET_MASK" ]
+then
+  # set alternative
+  SUBNET_MASK="255.255.255.0"
+fi
 
-# run applications in the background
-echo "starting ssh ..."
-/etc/init.d/ssh start &
+if [ "$IP_ADDRESS" == "dhcp" ]
+then
+  # set dhcp mode
+  dhclient cifx0
+  echo "cifx0 configured to dhcp"
+else
+  #split given parameters in factors
+  IFS=. read -r i1 i2 i3 i4 <<< "$IP_ADDRESS"
+  IFS=. read -r m1 m2 m3 m4 <<< "$SUBNET_MASK"
+
+  #calculate the broadcast address
+  BROADCAST=$((i1 & m1 | 255-m1)).$((i2 & m2 | 255-m2)).$((i3 & m3 | 255-m3)).$((i4 & m4 | 255-m4))
+
+  # set ip address and subnet mask
+  ip addr add $IP_ADDRESS/$SUBNET_MASK broadcast $BROADCAST dev cifx0
+
+  echo "cifx0 ip address/subnet mask set to" $IP_ADDRESS"/"$SUBNET_MASK
+  
+  #is a getway set?
+  if [ -n $GATEWAY ]
+  then
+    NETWORK=$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$((i4 & m4))
+    ip route add $GATEWAY dev cifx0
+    ip route add $NETWORK/$SUBNET_MASK via $GATEWAY dev cifx0
+  fi
+  
+  ip link set cifx0 up
+fi
 
 if [ -f /etc/init.d/codesyscontrol ]
 then
