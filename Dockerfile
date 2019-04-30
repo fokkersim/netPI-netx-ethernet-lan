@@ -1,7 +1,7 @@
 #use armv7hf compatible base image
 FROM balenalib/armv7hf-debian:stretch
 
-#dynamic build arguments coming from the /hook/build file
+#dynamic build arguments coming from the /hooks/build file
 ARG BUILD_DATE
 ARG VCS_REF
 
@@ -25,7 +25,7 @@ LABEL maintainer="andreas.harrer@fokkersim.net" \
       description="CODESYS Control with netX based TCP/IP network interface"
 
 #copy files
-COPY "./driver/*" "./firmware/*" /tmp/	  
+COPY "./driver/*" "./firmware/*" /tmp/
 COPY "entrypoint.sh" /
 #fix windows permissions issue
 RUN chmod +x /entrypoint.sh
@@ -34,26 +34,23 @@ RUN chmod +x /entrypoint.sh
 ENV USER=pi
 ENV PASSWD=raspberry
 
-#install ssh, create user "pi" and make him sudo
+#do installation
 RUN apt-get update  \
-    && apt-get install -y openssh-server net-tools psmisc build-essential network-manager ifupdown isc-dhcp-client \
-    && mkdir /var/run/sshd \
+    && apt-get install -y openssh-server build-essential ifupdown isc-dhcp-client \
+#do users
     && useradd --create-home --shell /bin/bash pi \
+	&& echo 'root:root' | chpasswd \
     && echo $USER:$PASSWD | chpasswd \
     && adduser $USER sudo \
-    && echo $USER " ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/010_pi-nopasswd \
-    && touch /usr/bin/modprobe \
-    && chmod +x /usr/bin/modprobe \
-    && mkdir /etc/modprobe.d \
-    && touch /etc/modprobe.d/blacklist.conf \
-    && touch /etc/modules \
+	&& mkdir /var/run/sshd \
+    && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
+    && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd \
 #install netX driver and netX ethernet supporting firmware
     && dpkg -i /tmp/netx-docker-pi-drv-1.1.3-r1.deb \
     && dpkg -i /tmp/netx-docker-pi-pns-eth-3.12.0.8.deb \
 #compile netX network daemon
     && gcc /tmp/cifx0daemon.c -o /opt/cifx/cifx0daemon -I/usr/include/cifx -Iincludes/ -lcifx -pthread \
-#enable automatic interface management
-    && sudo sed -i 's/^managed=false/managed=true/' /etc/NetworkManager/NetworkManager.conf \
+
 #clean up
 	&& rm -rf /tmp/* \
     && apt-get remove build-essential \
