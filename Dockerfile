@@ -36,7 +36,7 @@ ENV PASSWD=raspberry
 
 #do installation
 RUN apt-get update  \
-    && apt-get install -y openssh-server build-essential ifupdown isc-dhcp-client \
+    && apt-get install -y openssh-server net-tools build-essential ifupdown isc-dhcp-client \
 #do users
     && useradd --create-home --shell /bin/bash pi \
 	&& echo 'root:root' | chpasswd \

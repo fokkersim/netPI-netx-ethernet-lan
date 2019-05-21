@@ -75,6 +75,7 @@ Parameter | Value | Remark
 *Runtime > Env* | *name* **IP_ADDRESS** -> *value* **e.g.192.168.0.1** | value `dhcp` enables dhcp mode
 *Runtime > Env* | *name* **SUBNET_MASK** -> *value* **e.g.255.255.255.0** | not needed in `dhcp` mode
 *Runtime > Env* | *name* **GATEWAY** -> *value* **e.g.192.168.0.10** | not needed in `dhcp` mode
+*Runtime > Env* | *name* **HOSTNAME** -> *value* **e.g.NetPi1** | Should be the same as in control panel
 *Runtime > Privileged mode* | **On** |
 
 STEP 4. Press the button *Actions > Start/Deploy container*
@@ -124,5 +125,3 @@ DockerHub web platform is x86 CPU based, but an ARM CPU coded output file is nee
 
 View the license information for the software in the project. As with all Docker images, these likely also contain other software which may be under other licenses (such as Bash, etc from the base distribution, along with any direct or indirect dependencies of the primary software being contained).
 As for any pre-built image usage, it is the image user's responsibility to ensure that any use of this image complies with any relevant licenses for all software contained within.
-
-[![N|Solid](http://www.hilscher.com/fileadmin/templates/doctima_2013/resources/Images/logo_hilscher.png)](http://www.hilscher.com)  Hilscher Gesellschaft fuer Systemautomation mbH  www.hilscher.com
