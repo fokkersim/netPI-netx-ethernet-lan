@@ -17,7 +17,7 @@ RUN [ "cross-build-start" ]
 ENV FOKKERSIMNETPI_CODESYS_NETX_NODERED_VERSION 1.0.0
 
 #execute all commands as root
-USER root
+#USER root
 
 #labeling
 LABEL maintainer="andreas.harrer@fokkersim.net" \
@@ -36,7 +36,7 @@ ENV PASSWD=raspberry
 
 #do installation
 RUN apt-get update  \
-    && apt-get install -y openssh-server net-tools build-essential ifupdown isc-dhcp-client \
+    && apt-get install -y openssh-server net-tools build-essential ifupdown isc-dhcp-client nano\
 #do users
     && useradd --create-home --shell /bin/bash pi \
 	&& echo 'root:root' | chpasswd \
